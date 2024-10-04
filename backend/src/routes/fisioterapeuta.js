@@ -170,7 +170,7 @@ router.post('/citas/:clienteId', auth, checkRole(['fisioterapeuta']), async (req
     const nuevaCita = await Cita.create({
       fecha,
       clienteId,
-      fisioterapeutaId: req.usuario.id,
+      fisioterapeutaId: req.user.id, // Cambia req.usuario.id a req.user.id
     });
     res.status(201).json(nuevaCita);
   } catch (error) {
@@ -182,7 +182,7 @@ router.post('/citas/:clienteId', auth, checkRole(['fisioterapeuta']), async (req
 router.get('/citas', auth, checkRole(['fisioterapeuta']), async (req, res, next) => {
   try {
     const citas = await Cita.findAll({
-      where: { fisioterapeutaId: req.usuario.id },
+      where: { fisioterapeutaId: req.user.id },
       include: [{ model: Usuario, as: 'Cliente', attributes: ['nombre', 'apellido'] }],
       order: [['fecha', 'ASC']],
     });
@@ -199,14 +199,14 @@ router.get('/citas/:clienteId', auth, checkRole(['fisioterapeuta']), async (req,
     const citas = await Cita.findAll({
       where: { 
         clienteId: clienteId,
-        fisioterapeutaId: req.usuario.id 
+        fisioterapeutaId: req.user.id 
       },
       include: [{ model: Usuario, as: 'Cliente', attributes: ['nombre', 'apellido'] }],
       order: [['fecha', 'ASC']],
     });
     res.json(citas);
   } catch (error) {
-    console.error('Error al obtener citas del cliente:', error);
+    console.error('Error al obtener citas:', error);
     next(error);
   }
 });
@@ -238,7 +238,7 @@ router.delete('/ejercicios/:clienteId/:ejercicioId', auth, checkRole(['fisiotera
 router.get('/ejercicios/progreso/:clienteId', auth, checkRole(['fisioterapeuta']), async (req, res, next) => {
   try {
     const { clienteId } = req.params;
-    const fisioterapeutaId = req.usuario.id;
+    const fisioterapeutaId = req.user.id;
 
     // Obtener todos los ejercicios asignados al cliente por este fisioterapeuta
     const ejercicios = await Ejercicio.findAll({
@@ -271,7 +271,7 @@ router.get('/ejercicios/progreso/:clienteId', auth, checkRole(['fisioterapeuta']
 router.post('/ejercicios/realizado', auth, checkRole(['cliente']), async (req, res, next) => {
   try {
     const { ejercicioId } = req.body;
-    const clienteId = req.usuario.id;
+    const clienteId = req.user.id;
 
     const ejercicio = await Ejercicio.findOne({
       where: { id: ejercicioId, clienteId }
@@ -301,7 +301,7 @@ router.put('/citas/:citaId', auth, checkRole(['fisioterapeuta']), async (req, re
     const { fecha } = req.body;
     const [updated] = await Cita.update(
       { fecha },
-      { where: { id: citaId, fisioterapeutaId: req.usuario.id } }
+      { where: { id: citaId, fisioterapeutaId: req.user.id } }
     );
     if (updated) {
       const updatedCita = await Cita.findByPk(citaId);
@@ -320,7 +320,7 @@ router.delete('/citas/:citaId', auth, checkRole(['fisioterapeuta']), async (req,
   try {
     const { citaId } = req.params;
     const deleted = await Cita.destroy({
-      where: { id: citaId, fisioterapeutaId: req.usuario.id }
+      where: { id: citaId, fisioterapeutaId: req.user.id }
     });
     if (deleted) {
       res.json({ mensaje: 'Cita eliminada con éxito' });

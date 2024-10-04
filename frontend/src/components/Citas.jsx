@@ -101,13 +101,10 @@ const Citas = memo(function Citas({ clienteId, isFisioterapeuta, isAdmin, allCit
       const token = localStorage.getItem('token');
       const url = isAdmin
         ? `http://localhost:5001/api/admin/citas`
-        : `http://localhost:5001/api/fisioterapeuta/citas`;
-      setOpenDialog(true);
+        : `http://localhost:5001/api/fisioterapeuta/citas/${clienteId}`;
       const citaData = {
         fecha: newEvent.start,
-        clienteId: clienteId
       };
-    setOpenDialog(false);
       if (selectedEvent) {
         await axios.put(`${url}/${selectedEvent.id}`, citaData, {
           headers: { Authorization: `Bearer ${token}` }
