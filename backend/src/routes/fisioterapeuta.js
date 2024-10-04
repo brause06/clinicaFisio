@@ -44,20 +44,18 @@ router.get('/clientes', auth, checkRole(['fisioterapeuta']), async (req, res) =>
   }
 });
 
-// Obtener historial de un cliente específico
+// Obtener historial de ejercicios realizados por un cliente
 router.get('/historial/:clienteId', auth, checkRole(['fisioterapeuta']), async (req, res, next) => {
   try {
     const { clienteId } = req.params;
-    const historial = await Historial.findAll({
-      where: { 
-        clienteId: clienteId,
-        fisioterapeutaId: req.usuario.id
-      },
+    const historial = await EjercicioRealizado.findAll({
+      where: { clienteId },
+      include: [{ model: Ejercicio, attributes: ['nombre', 'descripcion'] }],
       order: [['fecha', 'DESC']]
     });
     res.json(historial);
   } catch (error) {
-    console.error('Error al obtener historial:', error);
+    console.error('Error al obtener historial de ejercicios:', error);
     next(error);
   }
 });

@@ -22,6 +22,7 @@ import {
   deleteEjercicio, 
   fetchEjerciciosPreCargados 
 } from '../../store/ejercicioSlice';
+import api from '../../services/api';
 
 const EjerciciosChart = lazy(() => import('../Fisioterapeuta/EjerciciosChart'));
 
@@ -42,6 +43,7 @@ function FisioterapeutaDashboard() {
   const [page, setPage] = useState(1);
   const [clientesPorPagina] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
+  const [historial, setHistorial] = useState([]);
 
   const dispatch = useDispatch();
   const clientes = useSelector(state => state.clientes.list);
@@ -49,7 +51,6 @@ function FisioterapeutaDashboard() {
   const ejercicios = useSelector(state => state.ejercicios.list);
   const ejerciciosStatus = useSelector(state => state.ejercicios.status);
   const ejerciciosError = useSelector(state => state.ejercicios.error);
-  const historial = useSelector(state => state.ejercicios.historial);
   const ejerciciosPreCargados = useSelector(state => state.ejercicios.ejerciciosPreCargados);
   const ejerciciosPreCargadosStatus = useSelector(state => state.ejercicios.status);
 
@@ -215,6 +216,24 @@ function FisioterapeutaDashboard() {
       console.error('No hay cliente seleccionado');
     }
   };
+
+  const fetchHistorial = async (clienteId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await api.get(`/fisioterapeuta/historial/${clienteId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHistorial(response.data);
+    } catch (error) {
+      console.error('Error al obtener historial:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCliente) {
+      fetchHistorial(selectedCliente.id);
+    }
+  }, [selectedCliente]);
 
   return (
     <Container maxWidth="lg">
@@ -403,27 +422,20 @@ function FisioterapeutaDashboard() {
                   )}
                 </TabPanel>
                 <TabPanel value={tabValue} index={1}>
-                  <Typography variant="h6" gutterBottom>Ejercicios Precargados</Typography>
-                  {ejerciciosPreCargados && ejerciciosPreCargados.length > 0 ? (
+                  <Typography variant="h6" gutterBottom>Historial de Ejercicios</Typography>
+                  {historial.length > 0 ? (
                     <List>
-                      {ejerciciosPreCargados.map((ejercicio) => (
-                        <ListItem key={ejercicio.id}>
+                      {historial.map((entrada) => (
+                        <ListItem key={entrada.id}>
                           <ListItemText
-                            primary={ejercicio.nombre}
-                            secondary={ejercicio.descripcion}
+                            primary={entrada.Ejercicio?.nombre || 'Ejercicio no disponible'}
+                            secondary={`Realizado el: ${new Date(entrada.fecha).toLocaleString()}`}
                           />
-                          <Button 
-                            onClick={() => handleAgregarEjercicioPreCargado(ejercicio)} 
-                            variant="contained" 
-                            sx={{ ml: 1 }}
-                          >
-                            Agregar al Cliente
-                          </Button>
                         </ListItem>
                       ))}
                     </List>
                   ) : (
-                    <Typography>No hay ejercicios precargados disponibles.</Typography>
+                    <Typography>No hay ejercicios en el historial.</Typography>
                   )}
                 </TabPanel>
                 <TabPanel value={tabValue} index={2}>
